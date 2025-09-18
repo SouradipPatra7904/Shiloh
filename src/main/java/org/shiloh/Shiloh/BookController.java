@@ -6,6 +6,7 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.*;
 
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -22,6 +23,7 @@ public class BookController {
     }
 
     @GetMapping
+    @PreAuthorize("hasAnyRole('ADMIN','USER')")
     public CollectionModel<EntityModel<Book>> all() {
         List<EntityModel<Book>> books = service.findAll().stream()
             .map(book -> EntityModel.of(book,
@@ -42,6 +44,7 @@ public class BookController {
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<EntityModel<Book>> create(@RequestBody Book newBook) {
         Book saved = service.save(newBook);
         return ResponseEntity
@@ -50,6 +53,7 @@ public class BookController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public EntityModel<Book> replace(@RequestBody Book newBook, @PathVariable Long id) {
         Book updated = service.findById(id)
             .map(book -> {
@@ -66,6 +70,7 @@ public class BookController {
     }
 
     @PatchMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public EntityModel<Book> patch(@PathVariable Long id, @RequestBody Map<String, Object> updates) {
         Book book = service.findById(id).orElseThrow();
         updates.forEach((k, v) -> {
@@ -79,17 +84,20 @@ public class BookController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> delete(@PathVariable Long id) {
         service.delete(id);
         return ResponseEntity.noContent().build();
     }
 
     @RequestMapping(method = RequestMethod.HEAD)
+    @PreAuthorize("hasAnyRole('ADMIN','USER')")
     public ResponseEntity<?> head() {
         return ResponseEntity.ok().build();
     }
 
     @RequestMapping(method = RequestMethod.OPTIONS)
+    @PreAuthorize("hasAnyRole('ADMIN','USER')")
     public ResponseEntity<?> options() {
         return ResponseEntity.ok()
                 .allow(HttpMethod.GET, HttpMethod.POST, HttpMethod.PUT, HttpMethod.PATCH, HttpMethod.DELETE, HttpMethod.HEAD, HttpMethod.OPTIONS)
